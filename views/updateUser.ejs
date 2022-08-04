@@ -1,0 +1,50 @@
+<div class="container">
+  <div class="row">
+    <div class="col">
+      <h1 class="display-4">Update Data User</h1>
+      <form method="post" action="/updateData/<%= username %> ">
+        <div class="form-group">
+          <label>Fullname</label>
+          <input
+            type="text"
+            class="form-control"
+            name="fullname"
+            placeholder="Masukan fullname"
+            value="<%= fullname %>"
+          />
+        </div>
+        <div class="form-group">
+          <label>Username</label>
+          <input
+            type="text"
+            class="form-control"
+            name="username"
+            placeholder="Masukan username"
+            value="<%= username %>"
+          />
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input
+            type="text"
+            class="form-control"
+            name="password"
+            placeholder="Masukan password"
+            value="<%= password %>"
+          />
+        </div>
+        <div class="form-group">
+          <label>Level</label>
+          <input
+            type="text"
+            class="form-control"
+            name="level"
+            placeholder="Masukan level"
+            value="<%= level %>"
+          />
+        </div>
+        <button type="submit" class="btn btn-primary">Simpan</button>
+      </form>
+    </div>
+  </div>
+</div>
