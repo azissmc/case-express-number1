@@ -4,13 +4,21 @@ const bodyParser = require('body-parser');
 const fs = require('fs');
 const session = require('express-session');
 
+
 const app = express();
 const port = 3000;
 
 app.set('view engine', 'ejs');
 app.use(expressLayouts);
+app.use(express.json());
+app.use(express.urlencoded({extended: false}));
 app.use(bodyParser.urlencoded({extended: true}));
-
+app.use(session({
+    secret: 'ini adalah kode secret',
+    resave: false,
+    saveUninitialized: true,
+    cookie: {maxAge: 60*60*1000}
+}))
 // app.get('/', (req, res) => {
 //     const nama = "muchamad umar abdul azis";    
 //     res.send(`Hello ${nama}, Selamat datang di NodeJS`);
@@ -39,6 +47,10 @@ const users = [
     }
 ];
 
+app.get('/sessionid', (req, res) =>{
+    res.send(req.session.user);
+})
+
 app.get('/', (req, res) => {
     res.render('utama', {
         layout: 'layouts/main-layout',
@@ -50,14 +62,18 @@ app.get('/user', (req,res) => {
     res.render('datauser', {
         layout: 'layouts/main-layout',
         title: "Data-User",
-        users
+        users,
+        user: req.session.user || ""
     });
 });
 
 app.get('/tambah', (req,res) => {
+    let message = req.session.err || "";
+    req.session.err = "";
     res.render('tambahUser', {
         layout: 'layouts/main-layout',
-        title: "Tambah data"
+        title: "Tambah data",
+        message
     });
 });
 
@@ -128,8 +144,16 @@ app.post('/tambah', (req, res) => {
     const password = req.body.password;
     const level    = req.body.level;
 
-    if(username === users.username){
-        res.send("User ini sudah ada!");
+    const findIndex = users.find(user => user.username === username);
+    req.session.user = findIndex.level;
+    console.log(req.session.user);
+
+    if(findIndex.username == username){
+        req.session.err = "user ini sudah ada";
+        res.redirect('/tambah');
+    }else if(req.session.user != 'admin'){
+        req.session.err = "Maaf anda bukan admin";
+        res.redirect('/tambah');
     }else{  
         const data = {fullname, username, password, level};
     
@@ -161,27 +185,41 @@ app.delete('/hapus/:username', async function(req, res, next){
   
 
 app.get('/login', (req, res) => {
+    let message = req.session.err || "";
+    req.session.err = "";
     res.render('login', {
         layout: 'layouts/main-layout',
-        title: "Login"
-    });
+        title: "Login",
+        message
+    })
 });
 
+
 app.post('/cekLogin', (req, res) => {
-    const us = req.body.username;
+    const us =  req.body.username;
     const pass = req.body.password;
 
     const findIndex = users.find(user => user.username === us);   
-    if(findIndex.username == us){
+    if(findIndex.username == us){ 
         if(findIndex.password == pass){
+            req.session.user = findIndex.level;
             res.redirect('/user'); 
         }else{
-            res.send('gagal login, harap periksa username atau password');
+            req.session.err = "Incorect password";
+            res.redirect('/login');
         }
     }else{
-        res.send('Username tidak terdaftar');
+        req.session.err = "Incorect username or pasword";
+        res.redirect('/login');
     }
+
+
 });
+
+app.get('/logout', (req, res) => {
+    req.session.destroy();
+    res.redirect('/login');
+})
 
 app.listen(port, () => {
     console.log(`ini dijalankan port: ${3000}`);
